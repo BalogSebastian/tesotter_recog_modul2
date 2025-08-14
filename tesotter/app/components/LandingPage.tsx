@@ -1,12 +1,18 @@
+// app/components/LandingPage.tsx
 "use client"
 
-// components/LandingPage.tsx
 import React from 'react';
+import dynamic from 'next/dynamic';
+import Link from 'next/link'; // <--- Új import
+
+const OcrProcessor = dynamic(() => import('./OcrProcessor'), {
+  ssr: false,
+  loading: () => <div>Betöltés...</div>
+});
 
 const LandingPage = () => {
   return (
     <div className="relative h-screen w-full bg-black text-white overflow-hidden font-sans">
-      {/* Háttér placeholder */}
       <div 
         className="absolute inset-0 z-0 bg-cover bg-center opacity-80 transition-all duration-1000 ease-in-out" 
         style={{ 
@@ -14,11 +20,9 @@ const LandingPage = () => {
         }}>
       </div>
 
-      {/* Tartalom overlay */}
       <div className="relative z-10 flex flex-col h-full p-8 lg:p-12">
-        {/* Felső sáv */}
         <div className="flex justify-between items-center w-full">
-          <h1 className="text-4xl lg:text-5xl font-bold tracking-tight">TESOTTER</h1>
+          <OcrProcessor />
           <div className="flex items-center space-x-6 uppercase text-sm font-light">
             <span className="hover:text-gray-400 transition-colors duration-300 cursor-pointer">IN</span>
             <span className="hover:text-gray-400 transition-colors duration-300 cursor-pointer">TW</span>
@@ -27,13 +31,13 @@ const LandingPage = () => {
           </div>
         </div>
 
-        {/* Középső tartalom az 5 elemmel */}
         <div className="flex-grow flex items-center justify-center">
             <div className="flex justify-center space-x-8 lg:space-x-12 items-center w-full">
-                <p className="opacity-70 text-sm font-light text-right leading-tight">
-                  <span className="hidden md:inline">FRAGMENTS IN B&W</span><br />
-                  <span className="text-xs">00:01:28</span>
-                </p>
+                {/* Itt van az új Link komponens */}
+                <Link href="/data" className="opacity-70 text-sm font-light text-right leading-tight hover:text-white transition-colors duration-300">
+                  <p>SPONTEX LOGISTICS</p><br />
+                  <p className="text-xs">Saved documents</p>
+                </Link>
                 <p className="opacity-70 text-sm font-light text-right leading-tight">
                   <span className="hidden md:inline">DAIMON IN MOTION</span><br />
                   <span className="text-xs">00:02:10</span>
@@ -48,12 +52,10 @@ const LandingPage = () => {
                 </p>
                 <p className="opacity-70 text-sm font-light text-left leading-tight">
                   <span className="hidden md:inline">CAPTURING THE ESSENCE</span><br />
-                  <span className="text-xs">00:09:22</span>
-                </p>
+                  <span className="text-xs">00:09:22</span></p>
             </div>
         </div>
 
-        {/* Alsó rész */}
         <div className="flex justify-center items-end text-sm font-light pb-4">
           <p>A CREATIVE PRODUCTION BY SOLUTIONSS.</p>
         </div>
