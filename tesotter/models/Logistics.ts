@@ -10,6 +10,7 @@ export interface ILogistics extends Document {
   freightRate?: string;
   paymentTerms?: string;
   loadingReference?: string;
+  rawText?: string; // Új mező a nyers szövegnek
 }
 
 const LogisticsSchema: Schema = new Schema({
@@ -22,9 +23,9 @@ const LogisticsSchema: Schema = new Schema({
   freightRate: { type: String },
   paymentTerms: { type: String },
   loadingReference: { type: String },
+  rawText: { type: String }, // Új mező a nyers szövegnek
 }, {
   timestamps: true,
 });
 
-// Ellenőrizzük, hogy a modell már létezik-e, mielőtt újra definiálnánk
 export const Logistics = (mongoose.models.spontexlogistics as mongoose.Model<ILogistics>) || mongoose.model<ILogistics>('spontexlogistics', LogisticsSchema);

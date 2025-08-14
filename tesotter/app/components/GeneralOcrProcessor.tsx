@@ -6,69 +6,8 @@ import * as pdfjsLib from 'pdfjs-dist';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.mjs';
 
-interface LogisticsData {
-  from?: string;
-  to?: string;
-  loadingPlace?: string;
-  loadingTime?: string;
-  deliveryPlace?: string;
-  deliveryTime?: string;
-  freightRate?: string;
-  paymentTerms?: string;
-  loadingReference?: string;
-}
-
-const extractLogisticsData = (text: string): LogisticsData => {
-  const data: LogisticsData = {};
-  const lines = text.split('\n');
-  const regex = {
-    from: /From:\s*([^\n]+)/i,
-    to: /To:\s*([^\n]+)/i,
-    loadingPlace: /Loading place:\s*1\.\s*([^\n]+)/i,
-    loadingTime: /Loading time:\s*1\.\s*([^\n]+)/i,
-    deliveryPlace: /Delivery place:\s*1\.\s*([^\n]+)/i,
-    deliveryTime: /Delivery time:\s*1\.\s*([^\n]+)/i,
-    freightRate: /Freight rate:\s*([^\n]+)/i,
-    paymentTerms: /Payment terms:\s*([^\n]+)/i,
-    loadingReference: /loading reference:\s*([^\n]+)/i,
-  };
-
-  for (const line of lines) {
-    if (!data.from && regex.from.test(line)) {
-      data.from = line.match(regex.from)?.[1].trim();
-    }
-    if (!data.to && regex.to.test(line)) {
-      data.to = line.match(regex.to)?.[1].trim();
-    }
-    if (!data.loadingPlace && regex.loadingPlace.test(line)) {
-      data.loadingPlace = line.match(regex.loadingPlace)?.[1].trim();
-    }
-    if (!data.loadingTime && regex.loadingTime.test(line)) {
-      data.loadingTime = line.match(regex.loadingTime)?.[1].trim();
-    }
-    if (!data.deliveryPlace && regex.deliveryPlace.test(line)) {
-      data.deliveryPlace = line.match(regex.deliveryPlace)?.[1].trim();
-    }
-    if (!data.deliveryTime && regex.deliveryTime.test(line)) {
-      data.deliveryTime = line.match(regex.deliveryTime)?.[1].trim();
-    }
-    if (!data.freightRate && regex.freightRate.test(line)) {
-      data.freightRate = line.match(regex.freightRate)?.[1].trim();
-    }
-    if (!data.paymentTerms && regex.paymentTerms.test(line)) {
-      data.paymentTerms = line.match(regex.paymentTerms)?.[1].trim();
-    }
-    if (!data.loadingReference && regex.loadingReference.test(line)) {
-      data.loadingReference = line.match(regex.loadingReference)?.[1].trim();
-    }
-  }
-
-  return data;
-};
-
-const OcrProcessor = () => {
+const GeneralOcrProcessor = () => {
   const [extractedText, setExtractedText] = useState<string | null>(null);
-  const [extractedData, setExtractedData] = useState<LogisticsData | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
@@ -113,14 +52,12 @@ const OcrProcessor = () => {
         }
 
         setExtractedText(fullText);
-        setExtractedData(extractLogisticsData(fullText));
         setProgress('');
         setIsProcessing(false);
       };
       fileReader.readAsArrayBuffer(file);
     } catch (error) {
       setExtractedText(`Érvénytelen PDF-struktúra vagy hiba történt: ${error}`);
-      setExtractedData(null);
       setIsProcessing(false);
     }
   };
@@ -157,7 +94,6 @@ const OcrProcessor = () => {
         });
 
         setExtractedText(text);
-        setExtractedData(extractLogisticsData(text));
         setIsProcessing(false);
       };
       img.src = e.target.result as string;
@@ -171,7 +107,6 @@ const OcrProcessor = () => {
     if (file) {
       setIsProcessing(true);
       setExtractedText(null);
-      setExtractedData(null);
       setSaveStatus(null);
       setProgress('');
 
@@ -187,13 +122,12 @@ const OcrProcessor = () => {
   };
 
   const downloadTextFile = () => {
-    const textToDownload = JSON.stringify(extractedData, null, 2);
-    if (textToDownload) {
-      const blob = new Blob([textToDownload], { type: 'application/json' });
+    if (extractedText) {
+      const blob = new Blob([extractedText], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'extracted_data.json';
+      link.download = 'extracted_text.txt';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -202,7 +136,7 @@ const OcrProcessor = () => {
   };
 
   const saveDataToDb = async () => {
-    if (!extractedData) return;
+    if (!extractedText) return;
     setIsSaving(true);
     setSaveStatus(null);
 
@@ -212,7 +146,7 @@ const OcrProcessor = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(extractedData),
+        body: JSON.stringify({ rawText: extractedText }),
       });
 
       const result = await response.json();
@@ -242,14 +176,14 @@ const OcrProcessor = () => {
         className="text-4xl lg:text-5xl font-bold tracking-tight cursor-pointer"
         onClick={handleTesseractClick}
       >
-        TESOTTER
+        TESOTTER BETA
       </h1>
 
-      {(isProcessing || extractedData || extractedText) && (
+      {(isProcessing || extractedText) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
           <div className="bg-zinc-800 text-white p-8 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto relative">
             <button
-              onClick={() => { setExtractedText(null); setExtractedData(null); setSaveStatus(null); }}
+              onClick={() => { setExtractedText(null); setSaveStatus(null); }}
               className="absolute top-4 right-4 text-white text-2xl font-bold hover:text-gray-400"
             >
               &times;
@@ -261,30 +195,14 @@ const OcrProcessor = () => {
               </div>
             ) : (
               <div>
-                <h3 className="text-2xl font-bold mb-4">Kinyert adatok:</h3>
-                {extractedData ? (
-                  <>
-                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
-                      {Object.entries(extractedData).map(([key, value]) => (
-                        <div key={key} className="flex flex-col">
-                          <dt className="text-sm font-semibold text-gray-400 capitalize">{key.replace(/([A-Z])/g, ' $1')}:</dt>
-                          <dd className="mt-1 text-base">{value}</dd>
-                        </div>
-                      ))}
-                    </dl>
-                  </>
-                ) : (
-                  <div>
-                    <h3 className="text-xl font-bold mb-2">Sikertelen adatkivonás. Nyers szöveg:</h3>
-                    <pre className="whitespace-pre-wrap font-mono text-sm bg-zinc-700 p-4 rounded">{extractedText}</pre>
-                  </div>
-                )}
+                <h3 className="text-2xl font-bold mb-4">Kinyert szöveg:</h3>
+                <pre className="whitespace-pre-wrap font-mono text-sm">{extractedText}</pre>
                 <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mt-6">
                   <button
                     onClick={downloadTextFile}
                     className="px-4 py-2 bg-white text-black font-semibold rounded-md hover:bg-gray-200 transition-colors"
                   >
-                    Letöltés (JSON)
+                    Letöltés (TXT)
                   </button>
                   <button
                     onClick={saveDataToDb}
@@ -306,4 +224,4 @@ const OcrProcessor = () => {
   );
 };
 
-export default OcrProcessor;
+export default GeneralOcrProcessor;

@@ -1,13 +1,16 @@
 // app/components/LandingPage.tsx
+
 "use client"
 
-import React from 'react';
 import dynamic from 'next/dynamic';
-import Link from 'next/link'; // <--- Új import
+import Link from 'next/link';
 
+// Dinamikus import a két külön OCR-komponenshez
 const OcrProcessor = dynamic(() => import('./OcrProcessor'), {
   ssr: false,
-  loading: () => <div>Betöltés...</div>
+});
+const GeneralOcrProcessor = dynamic(() => import('./GeneralOcrProcessor'), {
+    ssr: false,
 });
 
 const LandingPage = () => {
@@ -22,7 +25,11 @@ const LandingPage = () => {
 
       <div className="relative z-10 flex flex-col h-full p-8 lg:p-12">
         <div className="flex justify-between items-center w-full">
-          <OcrProcessor />
+            {/* Mindkét OCR gomb külön komponensből jön */}
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                <OcrProcessor />
+                <GeneralOcrProcessor />
+            </div>
           <div className="flex items-center space-x-6 uppercase text-sm font-light">
             <span className="hover:text-gray-400 transition-colors duration-300 cursor-pointer">IN</span>
             <span className="hover:text-gray-400 transition-colors duration-300 cursor-pointer">TW</span>
@@ -33,7 +40,6 @@ const LandingPage = () => {
 
         <div className="flex-grow flex items-center justify-center">
             <div className="flex justify-center space-x-8 lg:space-x-12 items-center w-full">
-                {/* Itt van az új Link komponens */}
                 <Link href="/data" className="opacity-70 text-sm font-light text-right leading-tight hover:text-white transition-colors duration-300">
                   <p>SPONTEX LOGISTICS</p><br />
                   <p className="text-xs">Saved documents</p>

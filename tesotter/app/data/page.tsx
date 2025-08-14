@@ -1,3 +1,5 @@
+// app/data/page.tsx
+
 import Link from 'next/link';
 
 interface ILogistics {
@@ -11,6 +13,7 @@ interface ILogistics {
   freightRate?: string;
   paymentTerms?: string;
   loadingReference?: string;
+  rawText?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -37,11 +40,10 @@ export default async function DataPage() {
 
   return (
     <div className="min-h-screen relative font-sans p-8 md:p-12 overflow-hidden">
-      {/* Háttérkép a Landing Page stílusában */}
       <div 
-        className="absolute inset-0 z-0 bg-cover bg-center bg-fixed opacity-20 transition-all duration-2000 ease-in-out" 
+        className="absolute inset-0 z-0 bg-cover bg-center bg-fixed opacity-10 transition-all duration-1000 ease-in-out" 
         style={{ 
-          backgroundImage: 'url(/images/yellow.jpg)', 
+          backgroundImage: 'url(/images/bg-image.jpg)', 
         }}>
       </div>
       
@@ -59,17 +61,29 @@ export default async function DataPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {documents.map((doc) => (
                 <div key={doc._id} className="bg-zinc-900 p-6 rounded-xl shadow-lg border border-zinc-800 hover:border-zinc-700 transition-all duration-300">
-                  <h2 className="text-lg font-bold mb-4 text-gray-200 uppercase">{doc.loadingReference || 'Ismeretlen referencia'}</h2>
-                  <ul className="space-y-2 text-sm text-gray-400">
-                    <li><strong className="text-gray-300">Feladó:</strong> {doc.from || 'N/A'}</li>
-                    <li><strong className="text-gray-300">Címzett:</strong> {doc.to || 'N/A'}</li>
-                    <li><strong className="text-gray-300">Rakodás helye:</strong> {doc.loadingPlace || 'N/A'}</li>
-                    <li><strong className="text-gray-300">Rakodás ideje:</strong> {doc.loadingTime || 'N/A'}</li>
-                    <li><strong className="text-gray-300">Szállítás helye:</strong> {doc.deliveryPlace || 'N/A'}</li>
-                    <li><strong className="text-gray-300">Szállítás ideje:</strong> {doc.deliveryTime || 'N/A'}</li>
-                    <li><strong className="text-gray-300">Díj:</strong> {doc.freightRate || 'N/A'}</li>
-                    <li><strong className="text-gray-300">Mentve:</strong> {new Date(doc.createdAt).toLocaleString()}</li>
-                  </ul>
+                  <h2 className="text-lg font-bold mb-4 text-gray-200">
+                    {doc.from ? 'Strukturált adat' : 'Nyers szöveg'}
+                  </h2>
+                  {doc.from ? (
+                    <ul className="space-y-2 text-sm text-gray-400">
+                      <li><strong>Feladó:</strong> {doc.from}</li>
+                      <li><strong>Címzett:</strong> {doc.to || 'N/A'}</li>
+                      <li><strong>Rakodás helye:</strong> {doc.loadingPlace || 'N/A'}</li>
+                      <li><strong>Rakodás ideje:</strong> {doc.loadingTime || 'N/A'}</li>
+                      <li><strong>Szállítás helye:</strong> {doc.deliveryPlace || 'N/A'}</li>
+                      <li><strong>Szállítás ideje:</strong> {doc.deliveryTime || 'N/A'}</li>
+                      <li><strong>Díj:</strong> {doc.freightRate || 'N/A'}</li>
+                      <li><strong>Referencia:</strong> {doc.loadingReference || 'N/A'}</li>
+                      <li><strong>Mentve:</strong> {new Date(doc.createdAt).toLocaleString()}</li>
+                    </ul>
+                  ) : (
+                    <pre className="whitespace-pre-wrap font-mono text-sm text-gray-400 max-h-48 overflow-y-auto">
+                      {doc.rawText || 'Nincs kinyert szöveg'}
+                    </pre>
+                  )}
+                  <p className="mt-4 text-xs text-gray-500">
+                    Mentve: {new Date(doc.createdAt).toLocaleString()}
+                  </p>
                 </div>
               ))}
             </div>

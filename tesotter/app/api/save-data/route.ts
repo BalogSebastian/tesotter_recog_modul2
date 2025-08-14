@@ -8,7 +8,6 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     
-    // Ellenőrizzük, hogy vannak-e adatok a kérésben
     if (!body || Object.keys(body).length === 0) {
       return NextResponse.json({ success: false, message: 'Nincs menthető adat' }, { status: 400 });
     }
